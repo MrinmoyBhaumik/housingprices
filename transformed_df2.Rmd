@@ -1,0 +1,44 @@
+---
+title: "Df2_transformed"
+author: "Angelo Bravo"
+date: "2/16/2020"
+output: pdf_document
+---
+
+```{r}
+#install.packages("leaps")
+
+library(tidyverse)
+library(caret)
+library(leaps)
+library(car)
+library(MASS)
+
+df2 <- read.csv("/Users/angelobravo/Downloads/df2.csv", header = T)
+
+#fitting model
+full_model <- lm(log(price_doc) ~., df2)
+
+#plotting diagnostics
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(full_model)
+##we notice that there is heteroscedasticity in our residual plot
+#we will attempt  a log transormation on price_doc to account for outliers
+
+HighLeverage <- cooks.distance(full_model) > (4/nrow(df2))
+LargeResiduals <- rstudent(full_model) > 3
+df2 <- df2[which(LargeResiduals==FALSE & HighLeverage==FALSE),]
+no_outlier_model <- lm(price_doc ~ ., data = df2)  
+
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(no_outlier_model)
+
+
+###No outlier model with log transformation on price doc. 
+##We now observe homocedasticity in our our residuals after the transformation
+##this complies with the respective linear regression assumption
+no_outlier_log_model <- lm(log(price_doc) ~ ., data = df2)  
+
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(no_outlier_log_model)
+```
